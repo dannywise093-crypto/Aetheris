@@ -1,0 +1,48 @@
+name: Aetheris Autonomous Security Pipeline
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  aetheris-build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Validate Aetheris Engine
+        run: |
+          echo "[*] Validating Aetheris Python engine..."
+          python3 -m py_compile core/aetheris_engine.py
+          echo "[+] Aetheris engine syntax check passed."
+
+      - name: Validate Detection Rules
+        run: |
+          python3 - <<'PY'
+          import yaml
+          from pathlib import Path
+
+          rules = list(Path("detections").glob("*.y*ml"))
+
+          for rule in rules:
+              with open(rule, encoding="utf-8") as f:
+                  yaml.safe_load(f)
+              print(f"[+] Validated: {rule}")
+
+          print(f"[+] Detection rules checked: {len(rules)}")
+          PY
