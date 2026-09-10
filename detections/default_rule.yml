@@ -1,0 +1,7 @@
+title: Suspicious Lateral Process Access
+id: ae-001-sig
+
+detection:
+  selection:
+    EventID: 10
+    TargetImage|endswith: "\\lsass.exe"
